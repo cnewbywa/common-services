@@ -1,0 +1,42 @@
+version: "3.8"
+
+networks:
+    messaging-network:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.32.0.0/16
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    networks:
+      messaging-network:
+        ipv4_address: 172.32.0.2
+    ports:
+      - "2181:2181"
+    volumes:
+      - ~/docker/container_storage/messaging/zookeeper:/var/lib/zookeeper/data
+      - ~/docker/container_logs/messaging/zookeeper:/var/lib/zookeeper/log
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    networks:
+      messaging-network:
+        ipv4_address: 172.32.0.3
+    ports:
+      - "9092:9092"
+    volumes:
+      - ~/docker/container_storage/messaging/kafka:/var/lib/kafka/data
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://host.docker.internal:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    restart: on-failure
