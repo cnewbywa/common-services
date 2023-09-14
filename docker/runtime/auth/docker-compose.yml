@@ -1,0 +1,58 @@
+version: "3.8"
+
+networks:
+    auth-network:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.31.0.0/16
+
+secrets:
+    mysql_password:
+        file: ~/docker/container_configs/keycloak_db_password
+    mysql_root_password:
+        file: ~/docker/container_configs/keycloak_db_root_password
+    keycloak_password:
+        file: ~/docker/container_configs/keycloak_password
+
+services:
+    # keycloak db
+    mysql:
+        image: mysql:8.0
+        networks:
+            auth-network:
+                ipv4_address: 172.31.0.2
+        volumes:
+            - ~/docker/container_storage/auth/db:/var/lib/mysql
+        secrets:
+            - mysql_password
+            - mysql_root_password
+        environment:
+            - MYSQL_DATABASE=keycloak
+            - MYSQL_USER=keycloak
+            - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+
+    # openid
+    keycloak:
+        image: quay.io/keycloak/keycloak:22.0.1
+        depends_on:
+            - mysql
+        networks:
+            auth-network:
+                ipv4_address: 172.31.0.3
+        ports:
+            - "8085:8080"
+            - "9990:9990"
+        secrets:
+            - mysql_password
+            - keycloak_password
+        environment:
+            - KEYCLOAK_ADMIN=cloakAdmin
+            - KEYCLOAK_ADMIN_PASSWORD_FILE=/run/secrets/keycloak_password
+            - DB_VENDOR=MYSQL
+            - DB_ADDR=mysql
+            - DB_USER=keycloak
+            - DB_PASSWORD_FILE=/run/secrets/mysql_password
+        command: start-dev
