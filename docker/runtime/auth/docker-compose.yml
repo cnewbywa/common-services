@@ -36,7 +36,7 @@ services:
 
     # openid
     keycloak:
-        image: quay.io/keycloak/keycloak:22.0.1
+        image: quay.io/keycloak/keycloak:22.0.3
         depends_on:
             - mysql
         networks:
