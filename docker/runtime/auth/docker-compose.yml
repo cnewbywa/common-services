@@ -1,28 +1,22 @@
 version: "3.8"
 
 networks:
-    auth-network:
-        driver: bridge
-        ipam:
-            driver: default
-            config:
-                - subnet: 172.31.0.0/16
+    internal:
+        external: true
+        name: internal-network
 
 secrets:
     mysql_password:
-        file: ~/docker/container_configs/keycloak_db_password
+        file: ~/docker/container_configs/keycloak/keycloak_db_password
     mysql_root_password:
-        file: ~/docker/container_configs/keycloak_db_root_password
-    keycloak_password:
-        file: ~/docker/container_configs/keycloak_password
+        file: ~/docker/container_configs/keycloak/keycloak_db_root_password
 
 services:
     # keycloak db
     mysql:
         image: mysql:8.0
         networks:
-            auth-network:
-                ipv4_address: 172.31.0.2
+            - internal
         volumes:
             - ~/docker/container_storage/auth/db:/var/lib/mysql
         secrets:
@@ -40,19 +34,16 @@ services:
         depends_on:
             - mysql
         networks:
-            auth-network:
-                ipv4_address: 172.31.0.3
+            - internal
         ports:
-            - "8085:8080"
+            - "8085:8085"
             - "9990:9990"
-        secrets:
-            - mysql_password
-            - keycloak_password
         environment:
             - KEYCLOAK_ADMIN=cloakAdmin
-            - KEYCLOAK_ADMIN_PASSWORD_FILE=/run/secrets/keycloak_password
-            - DB_VENDOR=MYSQL
-            - DB_ADDR=mysql
-            - DB_USER=keycloak
-            - DB_PASSWORD_FILE=/run/secrets/mysql_password
-        command: start-dev
+            - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+            - KC_DB=mysql
+            - KC_DB_URL=jdbc:mysql://mysql:3306/keycloak
+            - KC_DB_USERNAME=keycloak
+            - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
+            - KC_HTTP_ENABLED=true
+        command: start-dev --http-port 8085

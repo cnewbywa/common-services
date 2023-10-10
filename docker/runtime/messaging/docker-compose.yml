@@ -1,20 +1,16 @@
 version: "3.8"
 
 networks:
-    messaging-network:
-        driver: bridge
-        ipam:
-            driver: default
-            config:
-                - subnet: 172.32.0.0/16
+    internal:
+        external: true
+        name: internal-network
 
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     hostname: zookeeper
     networks:
-      messaging-network:
-        ipv4_address: 172.32.0.2
+      - internal
     ports:
       - "2181:2181"
     volumes:
@@ -29,15 +25,16 @@ services:
     depends_on:
       - zookeeper
     networks:
-      messaging-network:
-        ipv4_address: 172.32.0.3
+      - internal
     ports:
-      - "9092:9092"
+      - "29092:29092"
     volumes:
       - ~/docker/container_storage/messaging/kafka:/var/lib/kafka/data
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://host.docker.internal:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
       - KAFKA_CREATE_TOPICS="item.events:1:1"
