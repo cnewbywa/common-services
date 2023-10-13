@@ -37,5 +37,5 @@ services:
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_CREATE_TOPICS="item.events:1:1"
+      - KAFKA_CREATE_TOPICS="events:1:1"
     restart: on-failure
