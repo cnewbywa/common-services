@@ -49,7 +49,6 @@ services:
             - KC_HOSTNAME_STRICT=false
             - KC_PROXY_ADDRESS_FORWARDING=true
             - KC_PROXY=edge
-            #- KC_HOSTNAME_URL=https://cnewbywa.auth
         command: start --proxy=edge --http-port=8085
 
     # proxy
