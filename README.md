@@ -1,6 +1,4 @@
 # Common services
-
-## Overview
 This project contains [Docker Compose](https://docs.docker.com/compose/) configurations for the following features:
 
  * Authentication
